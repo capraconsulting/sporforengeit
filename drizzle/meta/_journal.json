@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1698679411966,
+      "tag": "0000_odd_echo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1698680725187,
+      "tag": "0001_loud_marvel_zombies",
+      "breakpoints": true
+    }
+  ]
+}
