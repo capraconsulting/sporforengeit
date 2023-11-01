@@ -1,4 +1,4 @@
-[
+export const ANIMALS = [
   "Hund",
   "Katt",
   "Elefant",
