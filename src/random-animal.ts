@@ -1,5 +1,5 @@
 import seedrandom from "seedrandom";
-import { ANIMALS } from "./animals";
+import { ANIMALS } from "./animals-data";
 
 const numAnimalNames = ANIMALS ? ANIMALS.length : 0;
 

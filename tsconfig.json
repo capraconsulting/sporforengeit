@@ -1,15 +1,25 @@
 {
-	  "compilerOptions": {
-    "preserveConstEnums": true,
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "lib": ["es2018"],
+    "declaration": true,
+    "strict": true,
+    "noImplicitAny": true,
     "strictNullChecks": true,
-    "sourceMap": true,
-    "allowJs": true,
-    "target": "es5",
-    "outDir": ".build",
-    "moduleResolution": "node",
-    "lib": ["es2015"],
-    "rootDir": "./"
-	
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": false,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "esModuleInterop":true,
+    "outDir": ".build"
   },
-  "include": ["*.ts", "./src/animals.json"]
+  "include": ["./"],
+  "exclude": ["node_modules", "cdk.out"]
 }
