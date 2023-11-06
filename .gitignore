@@ -169,3 +169,7 @@ dist
 .pnp.\*
 
 .build
+.esbuild
+.cdk.staging
+cdk.out
+.vscode/settings.json
