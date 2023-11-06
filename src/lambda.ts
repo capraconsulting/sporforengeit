@@ -87,6 +87,7 @@ app.command("/anon", async ({ ack, command, say }) => {
 			},
 		});
 		const response = await dynamo.send(command);
+		console.info(response)
 	} catch (error) {
 		console.error(error);
 	}
