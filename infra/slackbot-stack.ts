@@ -2,7 +2,7 @@ import { Construct } from "constructs";
 
 import { CfnOutput, Stack, StackProps } from "aws-cdk-lib";
 import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
-import { NodejsFunction, SourceMapMode } from "aws-cdk-lib/aws-lambda-nodejs";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { FunctionUrlAuthType, Runtime } from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
 
