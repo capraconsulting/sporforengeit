@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 
-import { CfnOutput, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Duration, Stack, StackProps } from "aws-cdk-lib";
 import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { FunctionUrlAuthType, Runtime } from "aws-cdk-lib/aws-lambda";
@@ -28,7 +28,8 @@ export class SlackbotStack extends Stack {
 				sourceMap: true,
 				sourcesContent: false,
 				target: "es2018",
-			}
+			},
+			timeout: Duration.minutes(2)
 		});
 		dynamoTable.grantReadWriteData(lambda);
 

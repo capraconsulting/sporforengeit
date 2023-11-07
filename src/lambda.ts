@@ -22,15 +22,13 @@ const app = new App({
 	receiver: lambdaReciever,
 });
 
-app.command("/anon", async ({ ack, command, say }) => {
+app.command("/anon", async ({ ack, command, say, client }) => {
 	await ack();
 	const { text, user_id, channel_id } = command;
 
 	try {
 		/** Confirmation message only vissble for the user */
-		await app.client.chat.postEphemeral({
-			token: process.env.SLACK_BOT_TOKEN,
-			signingSecret: process.env.SLACK_SIGNING_SECRET,
+		await client.chat.postEphemeral({
 			user: user_id,
 			channel: channel_id,
 			text: "Takk for innsendt spørsmål!",
@@ -105,7 +103,7 @@ app.action("reply_anonymously", async ({ ack, body, client }) => {
 			.slice(1)
 			.join("")
 			.slice(0, -34);
-		const result = await client.views.open({
+		await client.views.open({
 			trigger_id: body.trigger_id,
 			view: {
 				type: "modal",
