@@ -29,7 +29,9 @@ export class SlackbotStack extends Stack {
 				sourcesContent: false,
 				target: "es2018",
 			},
-			timeout: Duration.minutes(2)
+			timeout: Duration.minutes(2),
+			profiling: true
+
 		});
 		dynamoTable.grantReadWriteData(lambda);
 

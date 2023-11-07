@@ -1,15 +1,9 @@
 import "dotenv/config";
 import { App, AwsLambdaReceiver } from "@slack/bolt";
 import { randomAnimal } from "./random-animal";
-import {
-	DynamoDBClient,
-	PutItemCommand,
-	GetItemCommand,
-} from "@aws-sdk/client-dynamodb";
 import bcrypt from "bcryptjs";
 import { Handler } from "aws-lambda";
 
-const dynamo = new DynamoDBClient();
 const TABLE_NAME: string = process.env.TABLE_NAME || "";
 
 const lambdaReciever = new AwsLambdaReceiver({
@@ -20,6 +14,7 @@ const app = new App({
 	signingSecret: process.env.SLACK_SIGNING_SECRET,
 	token: process.env.SLACK_BOT_TOKEN,
 	receiver: lambdaReciever,
+	processBeforeResponse: true,
 });
 
 app.command("/anon", async ({ ack, command, say, client }) => {
@@ -67,6 +62,10 @@ app.command("/anon", async ({ ack, command, say, client }) => {
 		const hashedUserId = await bcrypt.hash(user_id, 2);
 		if (!message.ts) return;
 
+		const { DynamoDBClient, PutItemCommand } = await import(
+			"@aws-sdk/client-dynamodb"
+		);
+		const dynamo = new DynamoDBClient();
 		const command = new PutItemCommand({
 			TableName: TABLE_NAME,
 			Item: {
@@ -84,8 +83,9 @@ app.command("/anon", async ({ ack, command, say, client }) => {
 				},
 			},
 		});
+
 		const response = await dynamo.send(command);
-		console.info(response)
+		console.info(response);
 	} catch (error) {
 		console.error(error);
 	}
@@ -157,6 +157,11 @@ app.view("reply_view", async ({ ack, client, body, payload, view }) => {
 	if (!value) return;
 	const threadId = payload.private_metadata;
 
+	const { DynamoDBClient, GetItemCommand } = await import(
+		"@aws-sdk/client-dynamodb"
+	);
+
+	const dynamo = new DynamoDBClient();
 	const command = new GetItemCommand({
 		TableName: TABLE_NAME,
 		Key: {
