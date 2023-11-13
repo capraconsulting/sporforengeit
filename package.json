@@ -5,6 +5,8 @@
   },
   "scripts": {
     "build": "tsc",
+    "dev": "esno ./test.ts",
+    "build:esbuild": "rm -rf dist && esbuild ./src/* --bundle --minify --sourcemap --platform=node --target=node18 --outdir=dist",
     "watch": "tsc -w",
     "format": "biome format --write ./src ./infra ./bin",
     "test": "jest",
@@ -19,17 +21,20 @@
     "aws-cdk": "^2.104.0",
     "aws-cdk-lib": "^2.104.0",
     "constructs": "^10.3.0",
+    "dotenv": "^16.3.1",
     "esbuild": "^0.19.5",
-    "typescript": "^5.2.2",
-    "dotenv": "^16.3.1"
+    "esno": "^0.17.0",
+    "typescript": "^5.2.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.441.0",
+    "@libsql/client": "^0.3.6",
     "@slack/bolt": "^3.14.0",
     "bcryptjs": "^2.4.3",
-    "seedrandom": "^3.0.5"
+    "seedrandom": "^3.0.5",
+    "valibot": "^0.20.1"
   }
 }

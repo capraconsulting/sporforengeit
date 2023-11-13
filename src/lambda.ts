@@ -1,100 +1,94 @@
 import "dotenv/config";
 import { App, AwsLambdaReceiver } from "@slack/bolt";
 import { randomAnimal } from "./random-animal";
-import bcrypt from "bcryptjs";
-import { Handler } from "aws-lambda";
+import { hash, compare } from "bcryptjs";
+import type { Handler } from "aws-lambda";
+import { app, lambdaReciever } from "./app";
+import {
+	DynamoDBClient,
+	GetItemCommand,
+	PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
+import { db } from "./db";
 
 const TABLE_NAME: string = process.env.TABLE_NAME || "";
+const dynamo = new DynamoDBClient();
 
-const lambdaReciever = new AwsLambdaReceiver({
-	signingSecret: process.env.SLACK_SIGNING_SECRET || "",
-});
-
-const app = new App({
-	signingSecret: process.env.SLACK_SIGNING_SECRET,
-	token: process.env.SLACK_BOT_TOKEN,
-	receiver: lambdaReciever,
-	processBeforeResponse: true,
-});
-
-app.command("/anon", async ({ ack, command, say, client }) => {
-	await ack();
+app.command("/anon", async ({ ack, command, body, client }) => {
 	const { text, user_id, channel_id } = command;
-
 	try {
-		/** Confirmation message only vissble for the user */
-		await client.chat.postEphemeral({
-			user: user_id,
-			channel: channel_id,
-			text: "Takk for innsendt spørsmål!",
-		});
-
-		const content = `*Anonym melding*\n\n${text}`;
-		const message = await say({
-			channel: channel_id,
-			text: content,
-			blocks: [
-				{
-					type: "section",
-					text: {
-						type: "mrkdwn",
-						text: content,
-					},
+		await ack();
+		await client.views.open({
+			trigger_id: body.trigger_id,
+			view: {
+				type: "modal",
+				callback_id: "reply_view",
+				title: {
+					type: "plain_text",
+					text: "Anonymt svar",
 				},
-				{
-					type: "actions",
-					elements: [
-						{
-							type: "button",
-							text: {
-								type: "plain_text",
-								text: "🧵 Reply anonymously",
-							},
-							style: "primary",
-							action_id: "reply_anonymously",
+				blocks: [
+					{
+						type: "section",
+						text: {
+							type: "mrkdwn",
+							text: 'Noen regler her',
 						},
-					],
+					},
+					{
+						type: "input",
+						block_id: "input_message",
+						label: {
+							type: "plain_text",
+							text: "Melding",
+						},
+						element: {
+							type: "plain_text_input",
+							action_id: "anonymously_message",
+							min_length: 1,
+							multiline: true,
+						},
+					},
+				],
+				submit: {
+					type: "plain_text",
+					text: "Send inn",
 				},
-			],
-		});
-		if (!message.ts) throw new Error("Could not get thread ID");
-
-		const hashedUserId = await bcrypt.hash(user_id, 2);
-		if (!message.ts) return;
-
-		const { DynamoDBClient, PutItemCommand } = await import(
-			"@aws-sdk/client-dynamodb"
-		);
-		const dynamo = new DynamoDBClient();
-		const command = new PutItemCommand({
-			TableName: TABLE_NAME,
-			Item: {
-				ThreadId: {
-					S: message.ts,
-				},
-				Content: {
-					S: text,
-				},
-				AuthorId: {
-					S: hashedUserId,
-				},
-				ChannelId: {
-					S: channel_id,
+				close: {
+					type: "plain_text",
+					text: "Lukk",
 				},
 			},
 		});
 
-		const response = await dynamo.send(command);
-		console.info(response);
+		// await client.chat.postEphemeral({
+		// 	user: user_id,
+		// 	channel: channel_id,
+		// 	text: "Takk for innsendt spørsmål!",
+		// });
+
+		// const hashedUserId = await hash(user_id, 2);
+		// const result = await db.execute({
+		// 	sql: "insert into messages values (null, :content, :authorId, false, false, :createdAt)",
+		// 	args: {
+		// 		content: `*Anonym melding*\n\n${text}`,
+		// 		authorId: hashedUserId,
+		// 		createdAt: new Date().toISOString(),
+		// 	},
+		// });
+		// await client.chat.postMessage({
+		// 	channel: "C063T0ZE4F2",
+		// 	text: `*Ny anonym melding nr. ${result.lastInsertRowid}*\n\n${text}`,
+		// });
+		
 	} catch (error) {
 		console.error(error);
 	}
 });
 
 app.action("reply_anonymously", async ({ ack, body, client }) => {
-	await ack();
-
 	try {
+		await ack();
 		if (body.type !== "block_actions" || !body.message) {
 			return;
 		}
@@ -156,12 +150,6 @@ app.view("reply_view", async ({ ack, client, body, payload, view }) => {
 
 	if (!value) return;
 	const threadId = payload.private_metadata;
-
-	const { DynamoDBClient, GetItemCommand } = await import(
-		"@aws-sdk/client-dynamodb"
-	);
-
-	const dynamo = new DynamoDBClient();
 	const command = new GetItemCommand({
 		TableName: TABLE_NAME,
 		Key: {
@@ -181,7 +169,7 @@ app.view("reply_view", async ({ ack, client, body, payload, view }) => {
 		content: result.Item.Content.S || "",
 	};
 
-	const isAuthor = await bcrypt.compare(body.user.id, item.authorId);
+	const isAuthor = await compare(body.user.id, item.authorId);
 
 	// If the user is not the author, get a random seeded animal. The seed is based on the threadId and the userId
 	const alias = isAuthor
