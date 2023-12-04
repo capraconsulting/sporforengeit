@@ -5,9 +5,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "esno ./test.ts",
     "build:esbuild": "rm -rf dist && esbuild ./src/* --bundle --minify --sourcemap --platform=node --target=node18 --outdir=dist",
-    "watch": "tsc -w",
     "format": "biome format --write ./src ./infra ./bin",
     "test": "jest",
     "cdk": "cdk"
