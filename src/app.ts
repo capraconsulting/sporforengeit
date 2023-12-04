@@ -6,52 +6,17 @@ import {
 	setHours,
 	setMinutes,
 } from "date-fns";
+import { SCHEDULE_MESSAGE_VIEW, SEND_MESSAGE_VIEW } from "./modal-views";
+import { z } from "zod";
+import { env } from "./env";
 
-export const initApp = (app: App) => {
+export const initializeSlackEvents = (app: App) => {
 	app.command("/anon", async ({ ack, body, client }) => {
 		try {
 			await ack();
 			await client.views.open({
 				trigger_id: body.trigger_id,
-				view: {
-					type: "modal",
-					callback_id: "send_in_view",
-					title: {
-						type: "plain_text",
-						text: "Anonymt svar",
-					},
-					blocks: [
-						{
-							type: "section",
-							text: {
-								type: "mrkdwn",
-								text: "Noen regler her",
-							},
-						},
-						{
-							type: "input",
-							block_id: "input_message",
-							label: {
-								type: "plain_text",
-								text: "Melding",
-							},
-							element: {
-								type: "plain_text_input",
-								action_id: "anonymously_message",
-								min_length: 1,
-								multiline: true,
-							},
-						},
-					],
-					submit: {
-						type: "plain_text",
-						text: "Send inn",
-					},
-					close: {
-						type: "plain_text",
-						text: "Lukk",
-					},
-				},
+				view: SEND_MESSAGE_VIEW(),
 			});
 		} catch (error) {
 			console.error(error);
@@ -65,7 +30,7 @@ export const initApp = (app: App) => {
 			if (!value) return;
 
 			await client.chat.postMessage({
-				channel: "C063T0ZE4F2",
+				channel: env.PRIVATE_CHANNEL_ID,
 				text: value,
 				blocks: [
 					{
@@ -95,11 +60,6 @@ export const initApp = (app: App) => {
 			console.error(error);
 		}
 	});
-	const formater = new Intl.DateTimeFormat("nb", {
-		timeZone: "Europe/Oslo",
-		timeStyle: "short",
-		dateStyle: "long",
-	});
 
 	app.action("schedule_message", async ({ body, client, ack }) => {
 		try {
@@ -112,56 +72,12 @@ export const initApp = (app: App) => {
 				setMinutes(addDays(new Date(), 1), 0),
 				11,
 			);
+			// Should always be valid since submissions cannot be empty
+			const result = z.string().parse(body.message.text);
 
 			await client.views.open({
 				trigger_id: body.trigger_id,
-				view: {
-					type: "modal",
-					callback_id: "schedule_message_view",
-					title: {
-						type: "plain_text",
-						text: "Velg et tidspunkt ",
-					},
-					blocks: [
-						{
-							type: "input",
-							block_id: "date_input",
-							label: {
-								type: "plain_text",
-								text: "Tidspunkt for sending",
-							},
-							element: {
-								type: "datetimepicker",
-								action_id: "datetimepicker_action",
-								initial_date_time: getUnixTime(tomorowAtTwelve),
-							},
-						},
-						{
-							type: "input",
-							block_id: "scheduled_message_input",
-							label: {
-								type: "plain_text",
-								text: "Melding",
-							},
-							element: {
-								type: "plain_text_input",
-								action_id: "scheduled_text",
-								initial_value: body.message.text,
-								multiline: true,
-							},
-						},
-					],
-					submit: {
-						type: "plain_text",
-						text: "Sett opp for sending 🚀",
-						emoji: true,
-					},
-					close: {
-						type: "plain_text",
-						text: "Lukk",
-					},
-					private_metadata: body.message.ts,
-				},
+				view: SCHEDULE_MESSAGE_VIEW(result, tomorowAtTwelve, body.message.ts),
 			});
 		} catch (error) {
 			console.error(error);
@@ -179,14 +95,24 @@ export const initApp = (app: App) => {
 			const post_at = fromUnixTime(timestamp);
 
 			const message = await app.client.chat.scheduleMessage({
-				channel: "C062XBMBTK8",
+				channel: env.PUBLIC_CHANNEL_ID,
 				post_at: getUnixTime(post_at),
 				text,
+				metadata: {
+					event_type: ""
+				}
 			});
+
 			const ts = payload.private_metadata;
 
+			const formater = new Intl.DateTimeFormat("nb", {
+				timeZone: "Europe/Oslo",
+				timeStyle: "short",
+				dateStyle: "long",
+			});
+
 			await app.client.chat.update({
-				channel: "C063T0ZE4F2",
+				channel: env.PRIVATE_CHANNEL_ID,
 				ts,
 				text,
 				blocks: [
@@ -199,6 +125,7 @@ export const initApp = (app: App) => {
 					},
 					{
 						type: "section",
+						block_id: "scheduled_time_id",
 						text: {
 							type: "mrkdwn",
 							text: `Denne meldingen blir sendt: ${formater.format(post_at)}`,
@@ -229,6 +156,7 @@ export const initApp = (app: App) => {
 	app.action("undo_schedule", async ({ ack, client, payload, body }) => {
 		try {
 			await ack();
+			console.log({ payload, body });
 			if (payload.type !== "button") {
 				return;
 			}
@@ -238,15 +166,13 @@ export const initApp = (app: App) => {
 
 			await client.chat.deleteScheduledMessage({
 				scheduled_message_id: payload.value,
-				channel: "C062XBMBTK8",
+				channel: env.PUBLIC_CHANNEL_ID,
 			});
-
-			console.log(body);
 
 			const text = body.message.text || "";
 
 			await client.chat.update({
-				channel: "C063T0ZE4F2",
+				channel: env.PRIVATE_CHANNEL_ID,
 				ts: body.message.ts,
 				text,
 				blocks: [
@@ -277,6 +203,5 @@ export const initApp = (app: App) => {
 			console.error(err);
 		}
 	});
-
 	return app;
 };

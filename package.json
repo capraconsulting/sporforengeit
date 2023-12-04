@@ -1,5 +1,6 @@
 {
   "name": "slackbot",
+  "type": "module",
   "bin": {
     "cdk-typescript": "bin/cdk-typescript.js"
   },
@@ -7,8 +8,11 @@
     "build": "tsc",
     "build:esbuild": "rm -rf dist && esbuild ./src/* --bundle --minify --sourcemap --platform=node --target=node18 --outdir=dist",
     "format": "biome format --write ./src ./infra ./bin",
-    "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "dev": "node --env-file .env test.js"
+  },
+  "engines": {
+    "node": "20.*"
   },
   "devDependencies": {
     "@biomejs/biome": "1.3.1",
@@ -17,12 +21,13 @@
     "aws-cdk": "^2.104.0",
     "aws-cdk-lib": "^2.104.0",
     "constructs": "^10.3.0",
+    "dotenv": "^16.3.1",
     "esbuild": "^0.19.5",
-    "esno": "^0.17.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {
     "@slack/bolt": "^3.14.0",
-    "date-fns": "^2.30.0"
+    "date-fns": "^2.30.0",
+    "zod": "^3.22.4"
   }
 }
