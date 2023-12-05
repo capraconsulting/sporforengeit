@@ -1,6 +1,5 @@
 {
   "name": "slackbot",
-  "type": "module",
   "bin": {
     "cdk-typescript": "bin/cdk-typescript.js"
   },

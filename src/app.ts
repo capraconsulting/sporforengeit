@@ -98,9 +98,6 @@ export const initializeSlackEvents = (app: App) => {
 				channel: env.PUBLIC_CHANNEL_ID,
 				post_at: getUnixTime(post_at),
 				text,
-				metadata: {
-					event_type: ""
-				}
 			});
 
 			const ts = payload.private_metadata;
@@ -164,12 +161,20 @@ export const initializeSlackEvents = (app: App) => {
 				return;
 			}
 
-			await client.chat.deleteScheduledMessage({
+			const deleted = await client.chat.deleteScheduledMessage({
 				scheduled_message_id: payload.value,
 				channel: env.PUBLIC_CHANNEL_ID,
 			});
 
-			const text = body.message.text || "";
+			if (!deleted.ok) {
+				await client.chat.postEphemeral({
+					channel: env.PRIVATE_CHANNEL_ID,
+					user: body.user.id,
+					text: "Kunne ikke kanselere sending av meldingen",
+				});
+			}
+
+			const text = z.string().parse(body.message.text);
 
 			await client.chat.update({
 				channel: env.PRIVATE_CHANNEL_ID,
@@ -203,5 +208,6 @@ export const initializeSlackEvents = (app: App) => {
 			console.error(err);
 		}
 	});
+
 	return app;
 };
