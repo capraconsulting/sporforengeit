@@ -13,7 +13,7 @@ export const SEND_MESSAGE_VIEW = (): View => ({
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: "Liten påminnelse: Still spørsmål som ikke er ufine :smile: \nDet vil bli sendt ut 2 spørsmål hver dag, så det er ikke sikkert at spørsmålet ditt kommer i kanalen med en gang.\n\n<https://www.notion.so/capra/sp-rforenvenn-bfc59b595e4e42b2820e817ed79f9d7a|Regler for kanalen>",
+				text: "Liten påminnelse: Ikke still spørsmål som er ufine :smile: \nDet vil bli sendt ut 2 spørsmål hver dag, så det er ikke sikkert at spørsmålet ditt kommer i kanalen med en gang.\n\n<https://www.notion.so/capra/sp-rforenvenn-bfc59b595e4e42b2820e817ed79f9d7a|Regler for kanalen>",
 			},
 		},
 		{
