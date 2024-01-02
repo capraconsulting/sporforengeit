@@ -6,7 +6,7 @@ export const SEND_MESSAGE_VIEW = (): View => ({
 	callback_id: "send_in_view",
 	title: {
 		type: "plain_text",
-		text: "Anonymt svar",
+		text: "Anonymt spørsmål",
 	},
 	blocks: [
 		{

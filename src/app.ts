@@ -11,7 +11,7 @@ import { z } from "zod";
 import { env } from "./env";
 
 export const initializeSlackEvents = (app: App) => {
-	app.command("/anon", async ({ ack, body, client }) => {
+	app.command("/spør", async ({ ack, body, client }) => {
 		try {
 			await ack();
 			await client.views.open({
